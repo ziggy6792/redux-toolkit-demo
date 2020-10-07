@@ -1,6 +1,6 @@
-import { State, Reducers } from './type.d';
+import { State, Reducers, User, UsersState, ResponseUser } from './type.d';
 import { Todo } from './type';
-import { configureStore, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { configureStore, createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { v1 as uuid } from 'uuid';
 
@@ -87,13 +87,91 @@ export const {
   remove: deleteTodoActionCreator,
 } = todosSlice.actions;
 
+export const { select: selectTodoActionCreator } = selectedTodoSlice.actions;
+
+// const fetchUserById = createAsyncThunk(
+//   'users/fetchById',
+//   // if you type your function argument here
+//   async (userId: number): Promise<User> => {
+//     const response = await fetch(`https://reqres.in/api/users/${userId}`);
+//     const userResonse: ResponseUser = await (response.json() as any);
+//     const { data: user } = userResonse;
+//     console.log('FETCHED USER!!!!', user);
+//     return user;
+//   }
+// );
+
+// const initialState: UsersState = {
+//   entities: [],
+//   loading: 'idle',
+// };
+
+// const usersSlice = createSlice({
+//   name: 'users',
+//   initialState,
+//   reducers: {
+//     // fill in primary logic here
+//   },
+//   // extraReducers: (builder) => {
+//   //   builder.addCase(fetchUserById.pending, (state, action) => {
+//   //     // both `state` and `action` are now correctly typed
+//   //     // based on the slice state and the `pending` action creator
+//   //   });
+//   // },
+//   extraReducers: {
+//     // Add reducers for additional action types here, and handle loading state as needed
+//     [fetchUserById.fulfilled.type]: (state, { payload }: PayloadAction<User>) => {
+//       // Add user to the state array
+//       state.entities.push(payload);
+//     },
+//   },
+// });
+
+// export const fetchUserByIdActionCreator = fetchUserById;
+
+// "http://jsonplaceholder.typicode.com/users"
+
+const getUsers = createAsyncThunk('users/getUsers', async (endpoint: string, thunkApi) => {
+  const response = await fetch(endpoint);
+  if (!response.ok) throw Error(response.statusText);
+  const toJson = await response.json();
+  return toJson;
+});
+
+const usersSlice = createSlice({
+  name: 'users',
+  initialState: {
+    loading: '',
+    error: '',
+    data: [],
+  } as UsersState,
+  reducers: {},
+  extraReducers: {
+    [getUsers.pending.type]: (state) => {
+      console.log('pending!');
+      state.loading = 'yes';
+    },
+    [getUsers.rejected.type]: (state, action) => {
+      state.loading = 'no';
+      console.log('rejected!', action);
+      state.error = action.error;
+    },
+    [getUsers.fulfilled.type]: (state, action) => {
+      console.log('fulfilled!');
+      state.loading = '';
+      state.data = action.payload;
+    },
+  },
+});
+
+export const getUsersActionCreator = getUsers;
+
 const reducer: Reducers = {
   todos: todosSlice.reducer,
   selectedTodo: selectedTodoSlice.reducer,
   counter: counterSlice.reducer,
+  users: usersSlice.reducer,
 };
-
-export const { select: selectTodoActionCreator } = selectedTodoSlice.actions;
 
 export default configureStore({
   reducer,

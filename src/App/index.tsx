@@ -3,8 +3,16 @@ import { v1 as uuid } from 'uuid';
 import { State, Todo } from '../type';
 import './App.css';
 
-import { createTodoActionCreator, editTodoActionCreator, toggleTodoActionCreator, deleteTodoActionCreator, selectTodoActionCreator } from '../redux-toolkit';
+import {
+  createTodoActionCreator,
+  editTodoActionCreator,
+  toggleTodoActionCreator,
+  deleteTodoActionCreator,
+  selectTodoActionCreator,
+  getUsersActionCreator,
+} from '../redux-toolkit';
 import { useDispatch, useSelector } from 'react-redux';
+import contactApi from '../contactApi';
 
 const App = function() {
   const dispatch = useDispatch();
@@ -16,6 +24,18 @@ const App = function() {
   const [editTodoInput, setEditTodoInput] = useState<string>('');
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const editInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    async function fetchMyAPI() {
+      const contacts = await contactApi.getContacts();
+      console.log(contacts);
+    }
+    fetchMyAPI();
+  }, []);
+
+  useEffect(() => {
+    dispatch(getUsersActionCreator('http://jsonplaceholder.typicode.com/userz/'));
+  }, []);
 
   console.log({ selectedTodoId });
 
