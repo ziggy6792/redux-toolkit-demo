@@ -100,7 +100,7 @@ const getUsers = createAsyncThunk<
   }
 >('users/getUsers', async (endpoint: string, thunkApi) => {
   const response = await fetch(endpoint);
-  if (!response.ok) throw Error(response.statusText);
+  if (!response.ok) return thunkApi.rejectWithValue((await response.json()) as MyKnownError);
   const toJson = await response.json();
   return toJson;
 });
