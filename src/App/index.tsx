@@ -34,7 +34,7 @@ const App = function() {
   }, []);
 
   useEffect(() => {
-    dispatch(getUsersActionCreator('http://jsonplaceholder.typicode.com/userz/'));
+    dispatch(getUsersActionCreator('http://jsonplaceholder.typicode.com/users/'));
   }, []);
 
   console.log({ selectedTodoId });

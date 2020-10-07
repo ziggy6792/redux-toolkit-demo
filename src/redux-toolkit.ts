@@ -1,4 +1,4 @@
-import { State, Reducers, User, UsersState, ResponseUser } from './type.d';
+import { State, Reducers, User, UsersState, ResponseUser, MyKnownError } from './type.d';
 import { Todo } from './type';
 import { configureStore, createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
@@ -89,49 +89,16 @@ export const {
 
 export const { select: selectTodoActionCreator } = selectedTodoSlice.actions;
 
-// const fetchUserById = createAsyncThunk(
-//   'users/fetchById',
-//   // if you type your function argument here
-//   async (userId: number): Promise<User> => {
-//     const response = await fetch(`https://reqres.in/api/users/${userId}`);
-//     const userResonse: ResponseUser = await (response.json() as any);
-//     const { data: user } = userResonse;
-//     console.log('FETCHED USER!!!!', user);
-//     return user;
-//   }
-// );
-
-// const initialState: UsersState = {
-//   entities: [],
-//   loading: 'idle',
-// };
-
-// const usersSlice = createSlice({
-//   name: 'users',
-//   initialState,
-//   reducers: {
-//     // fill in primary logic here
-//   },
-//   // extraReducers: (builder) => {
-//   //   builder.addCase(fetchUserById.pending, (state, action) => {
-//   //     // both `state` and `action` are now correctly typed
-//   //     // based on the slice state and the `pending` action creator
-//   //   });
-//   // },
-//   extraReducers: {
-//     // Add reducers for additional action types here, and handle loading state as needed
-//     [fetchUserById.fulfilled.type]: (state, { payload }: PayloadAction<User>) => {
-//       // Add user to the state array
-//       state.entities.push(payload);
-//     },
-//   },
-// });
-
-// export const fetchUserByIdActionCreator = fetchUserById;
-
-// "http://jsonplaceholder.typicode.com/users"
-
-const getUsers = createAsyncThunk('users/getUsers', async (endpoint: string, thunkApi) => {
+const getUsers = createAsyncThunk<
+  // Return type of the payload creator
+  User[],
+  // First argument to the payload creator
+  string,
+  // Types for ThunkAPI
+  {
+    rejectValue: MyKnownError;
+  }
+>('users/getUsers', async (endpoint: string, thunkApi) => {
   const response = await fetch(endpoint);
   if (!response.ok) throw Error(response.statusText);
   const toJson = await response.json();
@@ -146,21 +113,39 @@ const usersSlice = createSlice({
     data: [],
   } as UsersState,
   reducers: {},
-  extraReducers: {
-    [getUsers.pending.type]: (state) => {
-      console.log('pending!');
+  // extraReducers: {
+  //   [getUsers.pending.type]: (state) => {
+  //     console.log('pending!');
+  //     state.loading = 'yes';
+  //   },
+  //   [getUsers.rejected.type]: (state, action) => {
+  //     state.loading = 'no';
+  //     console.log('rejected!', action);
+  //     state.error = action.error;
+  //   },
+  //   [getUsers.fulfilled.type]: (state, action) => {
+  //     console.log('fulfilled!');
+  //     state.loading = '';
+  //     state.data = action.payload;
+  //   },
+  // },
+  extraReducers: (builder) => {
+    builder.addCase(getUsers.pending, (state, { payload }) => {
       state.loading = 'yes';
-    },
-    [getUsers.rejected.type]: (state, action) => {
-      state.loading = 'no';
-      console.log('rejected!', action);
-      state.error = action.error;
-    },
-    [getUsers.fulfilled.type]: (state, action) => {
-      console.log('fulfilled!');
+    });
+
+    builder.addCase(getUsers.rejected, (state, action: any) => {
+      if (action.payload) {
+        // Since we passed in `MyKnownError` to `rejectType` in `updateUser`, the type information will be available here.
+        state.error = action.payload.errorMessage;
+      } else {
+        state.error = action.error;
+      }
+    });
+    builder.addCase(getUsers.fulfilled, (state, { payload }) => {
       state.loading = '';
-      state.data = action.payload;
-    },
+      state.data = payload;
+    });
   },
 });
 

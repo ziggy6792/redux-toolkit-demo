@@ -9,9 +9,14 @@ export interface Todo {
 //   loading: 'idle' | 'pending' | 'succeeded' | 'failed';
 // }
 
+interface MyKnownError {
+  errorMessage: string;
+  // ...
+}
+
 export interface UsersState {
   loading: string;
-  error: string;
+  error: SerializedError | string;
   data: User[];
 }
 
